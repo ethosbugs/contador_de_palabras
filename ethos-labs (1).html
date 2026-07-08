@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ethos Labs | Contador de Texto</title>
+<style>
+  * { box-sizing: border-box; }
+
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    margin: 0;
+    min-height: 100vh;
+    background: radial-gradient(circle at 20% 20%, #2b2f77 0%, #14162b 45%, #05060d 100%);
+    color: #f2f2f7;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 40px 16px;
+    overflow-x: hidden;
+  }
+
+  .card {
+    width: 100%;
+    max-width: 760px;
+    background: rgba(255, 255, 255, 0.06);
+    backdrop-filter: blur(22px) saturate(160%);
+    -webkit-backdrop-filter: blur(22px) saturate(160%);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    border-radius: 28px;
+    padding: 36px 32px;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.15);
+    opacity: 0;
+    transform: translateY(24px) scale(0.98);
+    animation: riseIn 0.8s cubic-bezier(.22,1,.36,1) forwards;
+  }
+
+  @keyframes riseIn {
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 6px;
+    opacity: 0;
+    animation: fadeIn 0.9s ease 0.15s forwards;
+  }
+
+  @keyframes fadeIn { to { opacity: 1; } }
+
+  .header img {
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    object-fit: contain;
+    filter: drop-shadow(0 2px 8px rgba(0,0,0,0.4));
+  }
+
+  h1 {
+    text-align: center;
+    font-size: 24px;
+    font-weight: 600;
+    margin: 0;
+    letter-spacing: 0.3px;
+    background: linear-gradient(90deg, #ffffff, #b9baf7);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+
+  .subtitle {
+    text-align: center;
+    font-size: 14px;
+    color: rgba(242,242,247,0.65);
+    margin: 4px 0 24px;
+    opacity: 0;
+    animation: fadeIn 0.9s ease 0.3s forwards;
+  }
+
+  textarea {
+    width: 100%;
+    height: 190px;
+    padding: 16px;
+    font-size: 16px;
+    line-height: 1.5;
+    color: #f2f2f7;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    border-radius: 18px;
+    resize: vertical;
+    outline: none;
+    transition: border-color 0.3s ease, background 0.3s ease, box-shadow 0.3s ease;
+    opacity: 0;
+    animation: fadeIn 0.9s ease 0.45s forwards;
+  }
+
+  textarea::placeholder { color: rgba(242,242,247,0.4); }
+
+  textarea:focus {
+    border-color: rgba(160, 160, 255, 0.6);
+    background: rgba(255, 255, 255, 0.08);
+    box-shadow: 0 0 0 4px rgba(120, 120, 255, 0.15);
+  }
+
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 14px;
+    margin-top: 22px;
+  }
+
+  .stat {
+    background: rgba(255, 255, 255, 0.06);
+    border: 1px solid rgba(255, 255, 255, 0.14);
+    border-radius: 16px;
+    padding: 16px;
+    text-align: center;
+    backdrop-filter: blur(10px);
+    transition: transform 0.25s ease, background 0.25s ease;
+    opacity: 0;
+    animation: fadeIn 0.9s ease 0.6s forwards;
+  }
+
+  .stat:hover {
+    transform: translateY(-3px);
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  .stat h3 {
+    margin: 0 0 8px;
+    font-size: 12px;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    color: rgba(242,242,247,0.6);
+    font-weight: 500;
+  }
+
+  .stat p {
+    margin: 0;
+    font-size: 26px;
+    font-weight: 600;
+    color: #ffffff;
+    transition: transform 0.15s ease;
+  }
+
+  .stat p.bump { transform: scale(1.15); }
+
+  .actions {
+    display: flex;
+    justify-content: center;
+    margin-top: 26px;
+    opacity: 0;
+    animation: fadeIn 0.9s ease 0.75s forwards;
+  }
+
+  button#copyBtn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    font-size: 14px;
+    font-weight: 600;
+    color: #ffffff;
+    background: linear-gradient(135deg, rgba(120,120,255,0.5), rgba(80,80,200,0.4));
+    border: 1px solid rgba(255,255,255,0.25);
+    border-radius: 14px;
+    cursor: pointer;
+    backdrop-filter: blur(6px);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+  }
+
+  button#copyBtn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(80,80,220,0.4);
+  }
+
+  button#copyBtn:active { transform: translateY(0) scale(0.97); }
+
+  button#copyBtn.copied {
+    background: linear-gradient(135deg, rgba(90,220,150,0.5), rgba(50,180,120,0.4));
+  }
+
+  footer {
+    text-align: center;
+    margin-top: 26px;
+    font-size: 12px;
+    color: rgba(242,242,247,0.35);
+    opacity: 0;
+    animation: fadeIn 0.9s ease 0.9s forwards;
+  }
+</style>
+</head>
+<body>
+
+  <div class="card">
+    <div class="header">
+      <img src="assets/ethos-labs.png" alt="Ethos Labs">
+      <h1>Contador de texto en tiempo real</h1>
+    </div>
+    <p class="subtitle">Escribe o pega tu texto aquí abajo para ver las estadísticas al instante.</p>
+
+    <textarea id="cajaTexto" placeholder="Comienza a escribir aquí..."></textarea>
+
+    <div class="grid">
+      <div class="stat">
+        <h3>Caracteres</h3>
+        <p id="totalCaracteres">0</p>
+      </div>
+      <div class="stat">
+        <h3>Palabras</h3>
+        <p id="totalPalabras">0</p>
+      </div>
+      <div class="stat">
+        <h3>Líneas / Párrafos</h3>
+        <p id="totalLineas">0</p>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button id="copyBtn">Copiar estadísticas</button>
+    </div>
+
+    <footer>Ethos Labs</footer>
+  </div>
+
+<script>
+  const cajaTexto = document.getElementById('cajaTexto');
+  const totalCaracteres = document.getElementById('totalCaracteres');
+  const totalPalabras = document.getElementById('totalPalabras');
+  const totalLineas = document.getElementById('totalLineas');
+  const copyBtn = document.getElementById('copyBtn');
+
+  function bump(el) {
+    el.classList.remove('bump');
+    void el.offsetWidth;
+    el.classList.add('bump');
+  }
+
+  cajaTexto.addEventListener('input', () => {
+    const texto = cajaTexto.value;
+
+    const chars = texto.length;
+    const words = texto.trim() === "" ? 0 : texto.trim().split(/\s+/).length;
+    const lines = texto === "" ? 0 : texto.split('\n').length;
+
+    if (totalCaracteres.textContent != chars) { totalCaracteres.textContent = chars; bump(totalCaracteres); }
+    if (totalPalabras.textContent != words) { totalPalabras.textContent = words; bump(totalPalabras); }
+    if (totalLineas.textContent != lines) { totalLineas.textContent = lines; bump(totalLineas); }
+  });
+
+  copyBtn.addEventListener('click', async () => {
+    const resumen = `Caracteres: ${totalCaracteres.textContent}\nPalabras: ${totalPalabras.textContent}\nLíneas/Párrafos: ${totalLineas.textContent}`;
+    try {
+      await navigator.clipboard.writeText(resumen);
+    } catch (err) {
+      const ta = document.createElement('textarea');
+      ta.value = resumen;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+    }
+    copyBtn.textContent = 'Copiado ✓';
+    copyBtn.classList.add('copied');
+    setTimeout(() => {
+      copyBtn.textContent = 'Copiar estadísticas';
+      copyBtn.classList.remove('copied');
+    }, 1800);
+  });
+</script>
+
+</body>
+</html>
